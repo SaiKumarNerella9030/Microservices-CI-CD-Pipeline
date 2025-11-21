@@ -3,11 +3,11 @@ pipeline {
 
     environment {
         REGISTRY = "saikumarnerella90"
-        IMAGE_TAG = "${env.BUILD_NUMBER}"   // Version-wise tag
-        KUBECONFIG_PATH = "${WORKSPACE}/kubeconfig"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 git credentialsId: 'Gitcreds', url: 'https://github.com/SaiKumarNerella9030/microservices.git', branch: 'main'
@@ -18,6 +18,7 @@ pipeline {
             steps {
                 script {
                     def services = ["auth", "user"]
+
                     docker.withRegistry('https://index.docker.io/v1/', 'Dockercreds') {
                         services.each { service ->
                             sh """
@@ -34,16 +35,26 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                 script {
-                        def services = ["auth", "user"]
-                            services.each { service ->
-                        sh '''
-                        echo \"Deploying ${service}\"
-                        sed -i "s|image: ${REGISTRY}/${service}:.*|image: ${REGISTRY}/${service}:${IMAGE_TAG}|" k8s-manifests/${service}-deployment.yaml
-                        kubectl --kubeconfig=$KUBECONFIG apply -f k8s-manifests/${service}-deployment.yaml
-                        kubectl --kubeconfig=$KUBECONFIG rollout status deployment/${service}-deployment
-                        '''
-                        }
+
+                    def services = ["auth", "user"]
+
+                    services.each { service ->
+
+                        sh """
+                            echo "Deploying ${service}"
+
+                            # Update image in Kubernetes manifest
+                            sed -i 's|image: ${REGISTRY}/${service}:.*|image: ${REGISTRY}/${service}:${IMAGE_TAG}|' k8s-manifests/${service}-deployment.yaml
+
+                            # Apply manifest
+                            kubectl --kubeconfig="${KUBECONFIG}" apply -f k8s-manifests/${service}-deployment.yaml
+
+                            # Wait for rollout
+                            kubectl --kubeconfig="${KUBECONFIG}" rollout status deployment/${service}-deployment
+                        """
                     }
+
+                }
                 }
             }
         }
