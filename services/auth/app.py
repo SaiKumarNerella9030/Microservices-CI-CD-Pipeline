@@ -3,7 +3,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Auth Service Running!"
+    return "Welcome to Teju's world!"
 
 @app.route('/health')
 def health():
