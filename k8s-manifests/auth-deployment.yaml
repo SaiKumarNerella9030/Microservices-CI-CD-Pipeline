@@ -28,7 +28,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: auth-service
-  namespace: auth-namespace
+  namespace: devops
 spec:
   type: LoadBalancer
   selector:
