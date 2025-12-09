@@ -3,7 +3,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Welcome to webhooks world!"
+    return "Server is up, vibes are good, and life is great!"
 
 @app.route('/health')
 def health():
